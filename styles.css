@@ -1,44 +1,50 @@
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f0f0;
+.container {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
     margin: 0;
+button:active {
+    transform: scale(0.98);
+}
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
 }
 
 .form-container {
     background-color: #fff;
     padding: 40px;
+.form-container {
+    background-color: #fff;
+    padding: 2.5rem;
     border-radius: 12px;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
     max-width: 400px;
     width: 90%;
-}
-
-form {
-    display: flex;
+}   display: flex;
     flex-direction: column;
     gap: 20px;
 }
 
 label {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     margin-bottom: 8px;
 }
 
 input {
     padding: 12px;
     font-size: 1.1rem;
-    border: 2px solid #ccc;
+    border: 2px solid teal; /* Update the border color to match your design system */
     border-radius: 6px;
 }
 
 button {
     padding: 14px;
     font-size: 1.1rem;
-    background-color: teal;
+    background-color: teal; /* Replace <your-color> with a valid color value */
     color: #fff;
     border: none;
     border-radius: 6px;
@@ -50,6 +56,9 @@ button:hover {
     background-color: darkcyan;
 }
 
+button:active {
+    transform: scale(0.98);
+}
 button:active {
     transform: scale(0.98);
 }
