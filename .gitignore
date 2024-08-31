@@ -1,0 +1,9 @@
+# Ignore node_modules folder if you add Node.js related tools in the future
+node_modules/
+
+# Ignore any IDE specific settings
+.vscode/
+.idea/
+
+# Ignore MacOS specific system files
+.DS_Store
