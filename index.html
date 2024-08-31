@@ -8,17 +8,27 @@
 </head>
 <body>
     <div class="form-container">
+        <h1>Username Generator</h1>
         <form id="usernameForm">
             <label for="username">Choose a Username:</label>
-            <input type="text" id="username" name="username" placeholder="Enter a username" readonly>
+            <input type="text" id="username" name="username" placeholder="Generated username" readonly>
             <button type="button" id="generateBtn">Generate Username</button>
+            <button type="button" id="copyBtn">Copy to Clipboard</button>
         </form>
-    </div>
-
-    <!-- Move the script tag to the end of the body -->
+        <div class="options">
+            <label for="format">Username Format:</label>
+            <select id="format">
+                <option value="adjective-noun">Adjective-Noun</option>
+                <option value="noun-number">Noun-Number</option>
+                <option value="adjective-noun-number">Adjective-Noun-Number</option>
+            </select>
+        </div>
+        <button type="button" id="toggleDarkMode">Toggle Dark Mode</button>
+        <div class="history">
+            <h2>Username History</h2>
+            <ul id="usernameHistory"></ul>
+        </div>
     </div>
     <script src="script.js"></script>
-    </body>
-    </html>
 </body>
 </html>
