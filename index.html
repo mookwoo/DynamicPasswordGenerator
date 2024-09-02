@@ -9,48 +9,51 @@
 <body>
     <div class="form-container">
         <h1>Username Generator</h1>
-        <form id="usernameForm">
-            <label for="username">Generated Username:</label>
-            <input type="text" id="username" name="username" placeholder="Generated username" readonly>
-            <button type="button" id="generateBtn">Generate Username</button>
-            <button type="button" id="copyBtn">Copy to Clipboard</button>
-        </form>
-        <div class="options">
-            <label for="theme">Select Theme:</label>
-            <select id="theme">
-                <option value="default">Default</option>
-                <option value="fantasy">Fantasy</option>
-                <option value="sci-fi">Sci-Fi</option>
-                <option value="professional">Professional</option>
-            </select>
+        <div class="username-display">
+            <input type="text" id="username" placeholder="Generated username" readonly>
+            <button type="button" id="copyBtn">Copy</button>
         </div>
-        <div class="mood-container">
-            <label for="mood">Select Emotion or Mood:</label>
-            <select id="mood">
-                <option value="default">Default</option>
-                <option value="happy">Happy</option>
-                <option value="fierce">Fierce</option>
-                <option value="calm">Calm</option>
-                <option value="dark">Dark</option>
-                <option value="creative">Creative</option>
-            </select>
+        <div class="controls-grid">
+            <div class="control-group">
+                <label for="theme">Theme:</label>
+                <select id="theme">
+                    <option value="default">Default</option>
+                    <option value="fantasy">Fantasy</option>
+                    <option value="sci-fi">Sci-Fi</option>
+                    <option value="professional">Professional</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="mood">Mood:</label>
+                <select id="mood">
+                    <option value="default">Default</option>
+                    <option value="happy">Happy</option>
+                    <option value="fierce">Fierce</option>
+                    <option value="calm">Calm</option>
+                    <option value="dark">Dark</option>
+                    <option value="creative">Creative</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="usernameLength">Length:</label>
+                <input type="range" id="usernameLength" min="5" max="15" value="10">
+            </div>
+            <div class="control-group">
+                <label for="bulkCount">Quantity:</label>
+                <input type="number" id="bulkCount" min="1" max="20" value="5">
+            </div>
         </div>
-        <div class="length-container">
-            <label for="usernameLength">Desired Username Length:</label>
-            <input type="range" id="usernameLength" min="5" max="15" value="10">
+        <div class="buttons-row">
+            <button type="button" id="generateBtn">Generate</button>
+            <button type="button" id="bulkGenerateBtn">Bulk Generate</button>
+            <button type="button" id="toggleDarkMode">Toggle Dark Mode</button>
         </div>
-        <div class="bulk-container">
-            <label for="bulkCount">Number of Usernames to Generate:</label>
-            <input type="number" id="bulkCount" min="1" max="20" value="5">
-            <button type="button" id="bulkGenerateBtn">Generate Multiple Usernames</button>
-        </div>
-        <button type="button" id="toggleDarkMode">Toggle Dark Mode</button>
         <canvas id="usernameCanvas" width="200" height="200"></canvas>
+        <div class="bulk-results" id="bulkResults"></div>
         <div class="history">
             <h2>Username History</h2>
             <ul id="usernameHistory"></ul>
         </div>
-        <div class="bulk-results" id="bulkResults"></div>
     </div>
     <script src="script.js"></script>
 </body>
