@@ -33,6 +33,8 @@ async function fetchWords(type, theme = 'default', mood = 'default') {
 async function generateUsername() {
     const theme = document.getElementById('theme').value;
     const mood = document.getElementById('mood').value;
+    const includeNumbers = document.getElementById('includeNumbers').checked;
+    const includeSymbols = document.getElementById('includeSymbols').checked;
     const adjectives = await fetchWords('adjective', theme, mood);
     const nouns = await fetchWords('noun', theme, mood);
     const length = parseInt(document.getElementById('usernameLength').value, 10);
@@ -46,7 +48,13 @@ async function generateUsername() {
         randomUsername = 'DefaultUsername';
     }
 
-    return adjustUsernameLength(randomUsername, length);
+    randomUsername = adjustUsernameLength(randomUsername, length);
+
+    // Add numbers or symbols if selected
+    if (includeNumbers) randomUsername += Math.floor(Math.random() * 100);
+    if (includeSymbols) randomUsername += getRandomSymbol();
+
+    return randomUsername;
 }
 
 function adjustUsernameLength(username, length) {
@@ -57,6 +65,11 @@ function adjustUsernameLength(username, length) {
         username += username.charAt(Math.floor(Math.random() * username.length));
     }
     return username;
+}
+
+function getRandomSymbol() {
+    const symbols = "!@#$%^&*()_+-=[]{}|;:'\",.<>?";
+    return symbols.charAt(Math.floor(Math.random() * symbols.length));
 }
 
 async function generateBulkUsernames() {
@@ -77,8 +90,14 @@ function generateVisual(username) {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = `#${username.length * 23 % 256}${username.charCodeAt(0) % 256}${username.charCodeAt(username.length - 1) % 256}`;
+    // Example visualization: create a pattern based on username components
+    const colors = ['#FF5733', '#33FF57', '#3357FF', '#F4D03F', '#9B59B6'];
+    ctx.fillStyle = colors[username.length % colors.length];
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.font = 'bold 24px Arial';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(username.charAt(0), canvas.width / 2 - 10, canvas.height / 2 + 10);
 }
 
 function copyToClipboard() {

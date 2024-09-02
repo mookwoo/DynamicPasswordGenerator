@@ -145,3 +145,7 @@ canvas {
     margin: 10px 0;
     max-width: 100%;
 }
+.include-options {
+    display: flex;
+    gap: 10px;
+}
