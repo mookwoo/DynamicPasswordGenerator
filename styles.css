@@ -19,10 +19,13 @@ body.dark-mode {
     padding: 40px;
     border-radius: 12px;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-    max-width: 400px;
+    max-width: 500px;
     width: 90%;
     text-align: center;
     transition: background-color 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 body.dark-mode .form-container {
@@ -37,6 +40,21 @@ form {
     display: flex;
     flex-direction: column;
     gap: 10px;
+}
+
+input {
+    padding: 16px;
+    font-size: 1.2rem;
+    border: 2px solid #ccc;
+    border-radius: 6px;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+input:focus {
+    border-color: teal;
 }
 
 button {
@@ -58,8 +76,17 @@ button:active {
     transform: scale(0.98);
 }
 
-.options {
-    margin: 20px 0;
+.options, .mood-container, .length-container, .bulk-container {
+    margin: 10px 0;
+}
+
+.bulk-results {
+    margin-top: 20px;
+    max-height: 200px;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
 }
 
 .history {
@@ -82,4 +109,21 @@ li {
 
 body.dark-mode li {
     background-color: #555;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+canvas {
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    margin: 10px 0;
 }
