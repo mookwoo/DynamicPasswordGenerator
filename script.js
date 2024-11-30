@@ -9,6 +9,9 @@ document.getElementById('generateBtn').addEventListener('click', async () => {
 document.getElementById('copyBtn').addEventListener('click', copyToClipboard);
 document.getElementById('toggleDarkMode').addEventListener('click', toggleDarkMode);
 document.getElementById('bulkGenerateBtn').addEventListener('click', generateBulkUsernames);
+document.getElementById('rateBtn').addEventListener('click', rateUsername);
+
+const ratings = [];
 
 async function fetchWords(type, theme = 'default', mood = 'default') {
     let url = `https://api.datamuse.com/words?${type === 'adjective' ? 'rel_jjb=object' : 'rel_jja=thing'}&max=10`;
@@ -53,6 +56,9 @@ async function generateUsername() {
     // Add numbers or symbols if selected
     if (includeNumbers) randomUsername += Math.floor(Math.random() * 100);
     if (includeSymbols) randomUsername += getRandomSymbol();
+
+    // Remove the call to updatePreview
+    // updatePreview(randomUsername);
 
     return randomUsername;
 }
@@ -118,4 +124,36 @@ function addToHistory(username) {
 
 function toggleDarkMode() {
     document.body.classList.toggle('dark-mode');
+}
+
+function rateUsername() {
+    const username = document.getElementById('username').value;
+    const rating = parseInt(document.getElementById('usernameRating').value, 10);
+    if (username && rating) {
+        ratings.push({ username, rating });
+        updateStatistics();
+    }
+}
+
+function updateStatistics() {
+    const totalRatings = ratings.length;
+    const averageRating = ratings.reduce((sum, { rating }) => sum + rating, 0) / totalRatings;
+    const mostCommonWord = getMostCommonWord();
+
+    const statsContainer = document.getElementById('statistics');
+    statsContainer.innerHTML = `
+        <p>Total Ratings: ${totalRatings}</p>
+        <p>Average Rating: ${averageRating.toFixed(2)}</p>
+        <p>Most Common Word: ${mostCommonWord}</p>
+    `;
+}
+
+function getMostCommonWord() {
+    const wordCounts = {};
+    ratings.forEach(({ username }) => {
+        username.split(/(?=[A-Z])/).forEach(word => {
+            wordCounts[word] = (wordCounts[word] || 0) + 1;
+        });
+    });
+    return Object.keys(wordCounts).reduce((a, b) => wordCounts[a] > wordCounts[b] ? a : b, '');
 }
