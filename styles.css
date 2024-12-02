@@ -59,6 +59,10 @@ h1 {
     border-color: teal;
 }
 
+body.dark-mode .username-display input {
+    border-color: #666;
+}
+
 .controls-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -95,6 +99,14 @@ button:hover {
 
 button:active {
     transform: scale(0.98);
+}
+
+body.dark-mode button {
+    background-color: #555;
+}
+
+body.dark-mode button:hover {
+    background-color: #666;
 }
 
 .bulk-results {
@@ -149,3 +161,5 @@ canvas {
     display: flex;
     gap: 10px;
 }
+
+/* Add more dark mode customizations as needed */

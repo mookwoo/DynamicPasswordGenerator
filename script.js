@@ -9,9 +9,12 @@ document.getElementById('generateBtn').addEventListener('click', async () => {
 document.getElementById('copyBtn').addEventListener('click', copyToClipboard);
 document.getElementById('toggleDarkMode').addEventListener('click', toggleDarkMode);
 document.getElementById('bulkGenerateBtn').addEventListener('click', generateBulkUsernames);
-document.getElementById('rateBtn').addEventListener('click', rateUsername);
+document.getElementById('usernameLength').addEventListener('input', updateLengthValue);
 
-const ratings = [];
+function updateLengthValue() {
+    const lengthValue = document.getElementById('usernameLength').value;
+    document.getElementById('lengthValue').textContent = lengthValue;
+}
 
 async function fetchWords(type, theme = 'default', mood = 'default') {
     let url = `https://api.datamuse.com/words?${type === 'adjective' ? 'rel_jjb=object' : 'rel_jja=thing'}&max=10`;
@@ -56,9 +59,6 @@ async function generateUsername() {
     // Add numbers or symbols if selected
     if (includeNumbers) randomUsername += Math.floor(Math.random() * 100);
     if (includeSymbols) randomUsername += getRandomSymbol();
-
-    // Remove the call to updatePreview
-    // updatePreview(randomUsername);
 
     return randomUsername;
 }
@@ -118,42 +118,42 @@ function copyToClipboard() {
 function addToHistory(username) {
     const historyList = document.getElementById('usernameHistory');
     const listItem = document.createElement('li');
-    listItem.textContent = username;
+    const timestamp = new Date().toLocaleString();
+    listItem.textContent = `${username} (Generated on: ${timestamp})`;
     historyList.prepend(listItem);
+
+    saveHistory(username, timestamp);
 }
+
+function saveHistory(username, timestamp) {
+    const history = JSON.parse(localStorage.getItem('usernameHistory')) || [];
+    history.unshift({ username, timestamp });
+    localStorage.setItem('usernameHistory', JSON.stringify(history));
+}
+
+function loadHistory() {
+    const history = JSON.parse(localStorage.getItem('usernameHistory')) || [];
+    const historyList = document.getElementById('usernameHistory');
+    history.forEach(entry => {
+        const listItem = document.createElement('li');
+        listItem.textContent = `${entry.username} (Generated on: ${entry.timestamp})`;
+        historyList.appendChild(listItem);
+    });
+}
+
+loadHistory();
 
 function toggleDarkMode() {
     document.body.classList.toggle('dark-mode');
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    localStorage.setItem('darkMode', isDarkMode);
 }
 
-function rateUsername() {
-    const username = document.getElementById('username').value;
-    const rating = parseInt(document.getElementById('usernameRating').value, 10);
-    if (username && rating) {
-        ratings.push({ username, rating });
-        updateStatistics();
+function loadDarkModePreference() {
+    const isDarkMode = localStorage.getItem('darkMode') === 'true';
+    if (isDarkMode) {
+        document.body.classList.add('dark-mode');
     }
 }
 
-function updateStatistics() {
-    const totalRatings = ratings.length;
-    const averageRating = ratings.reduce((sum, { rating }) => sum + rating, 0) / totalRatings;
-    const mostCommonWord = getMostCommonWord();
-
-    const statsContainer = document.getElementById('statistics');
-    statsContainer.innerHTML = `
-        <p>Total Ratings: ${totalRatings}</p>
-        <p>Average Rating: ${averageRating.toFixed(2)}</p>
-        <p>Most Common Word: ${mostCommonWord}</p>
-    `;
-}
-
-function getMostCommonWord() {
-    const wordCounts = {};
-    ratings.forEach(({ username }) => {
-        username.split(/(?=[A-Z])/).forEach(word => {
-            wordCounts[word] = (wordCounts[word] || 0) + 1;
-        });
-    });
-    return Object.keys(wordCounts).reduce((a, b) => wordCounts[a] > wordCounts[b] ? a : b, '');
-}
+loadDarkModePreference();

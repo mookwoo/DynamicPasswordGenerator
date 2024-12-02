@@ -13,17 +13,6 @@
             <input type="text" id="username" placeholder="Generated username" readonly>
             <button type="button" id="copyBtn">Copy</button>
         </div>
-        <div class="rating">
-            <label for="usernameRating">Rate this username:</label>
-            <select id="usernameRating">
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-            </select>
-            <button type="button" id="rateBtn">Rate</button>
-        </div>
         <div class="controls-grid">
             <div class="control-group">
                 <label for="theme">Theme:</label>
@@ -48,6 +37,7 @@
             <div class="control-group">
                 <label for="usernameLength">Length:</label>
                 <input type="range" id="usernameLength" min="5" max="15" value="10">
+                <span id="lengthValue">10</span>
             </div>
             <div class="control-group">
                 <label for="bulkCount">Quantity:</label>
@@ -71,12 +61,6 @@
         <div class="history">
             <h2>Username History</h2>
             <ul id="usernameHistory"></ul>
-        </div>
-        <div class="statistics" id="statistics">
-            <h2>Username Statistics</h2>
-            <p>Total Ratings: 0</p>
-            <p>Average Rating: 0</p>
-            <p>Most Common Word: N/A</p>
         </div>
     </div>
 </body>
