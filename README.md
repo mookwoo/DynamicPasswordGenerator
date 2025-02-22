@@ -10,7 +10,7 @@ This project generates random passwords dynamically using adjectives and nouns f
 ## How to Use
 1. Clone the repository.
 2. Open `index.html` in your web browser.
-3. Click "Generate Username" to create a random username.
+3. Click "Generate password" to create a random username.
 
 ## Technologies Used
 - HTML
