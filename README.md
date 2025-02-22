@@ -1,6 +1,6 @@
-# Dynamic Username Generator
+# Dynamic Password Generator
 
-This project generates random usernames dynamically using adjectives and nouns fetched from the Datamuse API. It provides a simple web form that allows users to generate a username if they have difficulty picking one.
+This project generates random passwords dynamically using adjectives and nouns fetched from the Datamuse API. It provides a simple web form that allows users to generate a username if they have difficulty picking one.
 
 ## Features
 - Fetches random adjectives and nouns from the Datamuse API.
