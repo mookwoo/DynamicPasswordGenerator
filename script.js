@@ -1,15 +1,16 @@
 document.getElementById('generateBtn').addEventListener('click', async () => {
-    const username = await generateUsername();
-    if (username) {
-        document.getElementById('username').value = username;
-        generateVisual(username);
-        addToHistory(username);
+    const password = await generatePassword();
+    if (password) {
+        document.getElementById('username').value = password;
+        addToHistory(password);
     }
 });
 document.getElementById('copyBtn').addEventListener('click', copyToClipboard);
 document.getElementById('toggleDarkMode').addEventListener('click', toggleDarkMode);
-document.getElementById('bulkGenerateBtn').addEventListener('click', generateBulkUsernames);
+document.getElementById('bulkGenerateBtn').addEventListener('click', generateBulkPasswords);
 document.getElementById('usernameLength').addEventListener('input', updateLengthValue);
+document.getElementById('clearHistoryBtn').addEventListener('click', clearHistory);
+document.getElementById('resetFormBtn').addEventListener('click', resetForm);
 
 function updateLengthValue() {
     const lengthValue = document.getElementById('usernameLength').value;
@@ -36,41 +37,44 @@ async function fetchWords(type, theme = 'default', mood = 'default') {
     }
 }
 
-async function generateUsername() {
+async function generatePassword() {
     const theme = document.getElementById('theme').value;
     const mood = document.getElementById('mood').value;
     const includeNumbers = document.getElementById('includeNumbers').checked;
     const includeSymbols = document.getElementById('includeSymbols').checked;
+    const customInput = document.getElementById('customInput').value.trim();
     const adjectives = await fetchWords('adjective', theme, mood);
     const nouns = await fetchWords('noun', theme, mood);
     const length = parseInt(document.getElementById('usernameLength').value, 10);
 
-    let randomUsername = '';
-    if (adjectives.length > 0 && nouns.length > 0) {
+    let randomPassword = '';
+    if (customInput) {
+        randomPassword = customInput;
+    } else if (adjectives.length > 0 && nouns.length > 0) {
         const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
         const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
-        randomUsername = `${randomAdjective}${randomNoun}`;
+        randomPassword = `${randomAdjective}${randomNoun}`;
     } else {
-        randomUsername = 'DefaultUsername';
+        randomPassword = 'DefaultPassword';
     }
 
-    randomUsername = adjustUsernameLength(randomUsername, length);
+    randomPassword = adjustPasswordLength(randomPassword, length);
 
     // Add numbers or symbols if selected
-    if (includeNumbers) randomUsername += Math.floor(Math.random() * 100);
-    if (includeSymbols) randomUsername += getRandomSymbol();
+    if (includeNumbers) randomPassword += Math.floor(Math.random() * 100);
+    if (includeSymbols) randomPassword += getRandomSymbol();
 
-    return randomUsername;
+    return randomPassword;
 }
 
-function adjustUsernameLength(username, length) {
-    if (username.length > length) {
-        return username.substring(0, length);
+function adjustPasswordLength(password, length) {
+    if (password.length > length) {
+        return password.substring(0, length);
     }
-    while (username.length < length) {
-        username += username.charAt(Math.floor(Math.random() * username.length));
+    while (password.length < length) {
+        password += password.charAt(Math.floor(Math.random() * password.length));
     }
-    return username;
+    return password;
 }
 
 function getRandomSymbol() {
@@ -78,56 +82,45 @@ function getRandomSymbol() {
     return symbols.charAt(Math.floor(Math.random() * symbols.length));
 }
 
-async function generateBulkUsernames() {
+async function generateBulkPasswords() {
     const count = parseInt(document.getElementById('bulkCount').value, 10);
     const resultsContainer = document.getElementById('bulkResults');
     resultsContainer.innerHTML = '';
 
     for (let i = 0; i < count; i++) {
-        const username = await generateUsername();
+        const password = await generatePassword();
         const resultItem = document.createElement('div');
-        resultItem.textContent = username;
+        resultItem.textContent = password;
         resultsContainer.appendChild(resultItem);
     }
 }
 
-function generateVisual(username) {
-    const canvas = document.getElementById('usernameCanvas');
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Example visualization: create a pattern based on username components
-    const colors = ['#FF5733', '#33FF57', '#3357FF', '#F4D03F', '#9B59B6'];
-    ctx.fillStyle = colors[username.length % colors.length];
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    ctx.font = 'bold 24px Arial';
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText(username.charAt(0), canvas.width / 2 - 10, canvas.height / 2 + 10);
-}
-
 function copyToClipboard() {
-    const username = document.getElementById('username').value;
-    navigator.clipboard.writeText(username).then(() => {
-        alert('Username copied to clipboard!');
+    const password = document.getElementById('username').value;
+    navigator.clipboard.writeText(password).then(() => {
+        const tooltip = document.getElementById('copyTooltip');
+        tooltip.style.visibility = 'visible';
+        setTimeout(() => {
+            tooltip.style.visibility = 'hidden';
+        }, 2000);
     }).catch(err => {
-        console.error('Failed to copy username:', err);
+        console.error('Failed to copy password:', err);
     });
 }
 
-function addToHistory(username) {
+function addToHistory(password) {
     const historyList = document.getElementById('usernameHistory');
     const listItem = document.createElement('li');
     const timestamp = new Date().toLocaleString();
-    listItem.textContent = `${username} (Generated on: ${timestamp})`;
+    listItem.textContent = `${password} (Generated on: ${timestamp})`;
     historyList.prepend(listItem);
 
-    saveHistory(username, timestamp);
+    saveHistory(password, timestamp);
 }
 
-function saveHistory(username, timestamp) {
+function saveHistory(password, timestamp) {
     const history = JSON.parse(localStorage.getItem('usernameHistory')) || [];
-    history.unshift({ username, timestamp });
+    history.unshift({ password, timestamp });
     localStorage.setItem('usernameHistory', JSON.stringify(history));
 }
 
@@ -136,12 +129,17 @@ function loadHistory() {
     const historyList = document.getElementById('usernameHistory');
     history.forEach(entry => {
         const listItem = document.createElement('li');
-        listItem.textContent = `${entry.username} (Generated on: ${entry.timestamp})`;
+        listItem.textContent = `${entry.password} (Generated on: ${entry.timestamp})`;
         historyList.appendChild(listItem);
     });
 }
 
 loadHistory();
+
+function clearHistory() {
+    localStorage.removeItem('usernameHistory');
+    document.getElementById('usernameHistory').innerHTML = '';
+}
 
 function toggleDarkMode() {
     document.body.classList.toggle('dark-mode');
@@ -157,3 +155,15 @@ function loadDarkModePreference() {
 }
 
 loadDarkModePreference();
+
+function resetForm() {
+    document.getElementById('theme').value = 'default';
+    document.getElementById('mood').value = 'default';
+    document.getElementById('usernameLength').value = 10;
+    document.getElementById('lengthValue').textContent = 10;
+    document.getElementById('bulkCount').value = 5;
+    document.getElementById('includeNumbers').checked = false;
+    document.getElementById('includeSymbols').checked = false;
+    document.getElementById('username').value = '';
+    document.getElementById('bulkResults').innerHTML = '';
+}

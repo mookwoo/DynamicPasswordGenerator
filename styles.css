@@ -151,15 +151,36 @@ body.dark-mode li {
     }
 }
 
-canvas {
-    border: 2px solid #ccc;
-    border-radius: 10px;
-    margin: 10px 0;
-    max-width: 100%;
-}
 .include-options {
     display: flex;
     gap: 10px;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%; /* Position above the button */
+    left: 50%;
+    margin-left: -60px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
 }
 
 /* Add more dark mode customizations as needed */

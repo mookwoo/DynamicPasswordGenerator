@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Username Generator</title>
+    <title>Dynamic Password Generator</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="form-container">
-        <h1>Username Generator</h1>
-        <div class="username-display">
-            <input type="text" id="username" placeholder="Generated username" readonly>
-            <button type="button" id="copyBtn">Copy</button>
+        <h1>Password Generator</h1>
+        <div class="username-display tooltip">
+            <input type="text" id="username" placeholder="Generated password" readonly aria-label="Generated password">
+            <button type="button" id="copyBtn" aria-label="Copy password">Copy</button>
+            <span class="tooltiptext" id="copyTooltip">Copied!</span>
         </div>
         <div class="controls-grid">
             <div class="control-group">
@@ -50,19 +51,24 @@
                     <label><input type="checkbox" id="includeSymbols"> Symbols</label>
                 </div>
             </div>
+            <div class="control-group">
+                <label for="customInput">Custom Input:</label>
+                <input type="text" id="customInput" placeholder="Enter custom words">
+            </div>
         </div>
         <div class="buttons-row">
             <button type="button" id="generateBtn">Generate</button>
             <button type="button" id="bulkGenerateBtn">Bulk Generate</button>
             <button type="button" id="toggleDarkMode">Toggle Dark Mode</button>
+            <button type="button" id="clearHistoryBtn">Clear History</button>
+            <button type="button" id="resetFormBtn">Reset Form</button>
         </div>
-        <canvas id="usernameCanvas" width="200" height="200"></canvas>
         <div class="bulk-results" id="bulkResults"></div>
         <div class="history">
-            <h2>Username History</h2>
+            <h2>Password History</h2>
             <ul id="usernameHistory"></ul>
         </div>
     </div>
+    <script src="script.js"></script>
 </body>
-<script src="script.js"></script>
 </html>
