@@ -1,74 +1,290 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Password Generator</title>
+    <title>SecurePass - Advanced Password Generator & Manager</title>
+    <meta name="description" content="Generate secure passwords and manage them safely with our advanced password manager">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <!-- Feather Icons for modern UI -->
+    <script src="https://unpkg.com/feather-icons"></script>
 </head>
 <body>
-    <div class="form-container">
-        <h1>Password Generator</h1>
-        <div class="username-display tooltip">
-            <input type="text" id="username" placeholder="Generated password" readonly aria-label="Generated password">
-            <button type="button" id="copyBtn" aria-label="Copy password">Copy</button>
-            <span class="tooltiptext" id="copyTooltip">Copied!</span>
-        </div>
-        <div class="controls-grid">
-            <div class="control-group">
-                <label for="theme">Theme:</label>
-                <select id="theme">
-                    <option value="default">Default</option>
-                    <option value="fantasy">Fantasy</option>
-                    <option value="sci-fi">Sci-Fi</option>
-                    <option value="professional">Professional</option>
-                </select>
+    <!-- Theme Toggle -->
+    <div class="theme-toggle">
+        <button type="button" id="themeToggle" class="btn btn-icon btn-outline" aria-label="Toggle theme">
+            <i data-feather="sun"></i>
+        </button>
+    </div>
+
+    <!-- Main App Container -->
+    <div class="app">
+        <!-- Authentication Section (Left Sidebar on Desktop) -->
+        <section class="auth-section" id="authSection">
+            <div class="section-header">
+                <h1 class="section-title">SecurePass</h1>
+                <p class="section-subtitle">Your secure password companion</p>
             </div>
-            <div class="control-group">
-                <label for="mood">Mood:</label>
-                <select id="mood">
-                    <option value="default">Default</option>
-                    <option value="happy">Happy</option>
-                    <option value="fierce">Fierce</option>
-                    <option value="calm">Calm</option>
-                    <option value="dark">Dark</option>
-                    <option value="creative">Creative</option>
-                </select>
+
+            <!-- Authentication Tabs -->
+            <div class="auth-tabs">
+                <button type="button" class="auth-tab active" data-tab="login">Login</button>
+                <button type="button" class="auth-tab" data-tab="register">Register</button>
             </div>
-            <div class="control-group">
-                <label for="usernameLength">Length:</label>
-                <input type="range" id="usernameLength" min="5" max="15" value="10">
-                <span id="lengthValue">10</span>
-            </div>
-            <div class="control-group">
-                <label for="bulkCount">Quantity:</label>
-                <input type="number" id="bulkCount" min="1" max="20" value="5">
-            </div>
-            <div class="control-group">
-                <label>Include:</label>
-                <div class="include-options">
-                    <label><input type="checkbox" id="includeNumbers"> Numbers</label>
-                    <label><input type="checkbox" id="includeSymbols"> Symbols</label>
+
+            <!-- Login Form -->
+            <form class="auth-form active" id="loginForm" data-form="login">
+                <div class="form-group">
+                    <label for="loginEmail" class="form-label">Email Address</label>
+                    <input type="email" id="loginEmail" class="form-input" placeholder="Enter your email" required autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword" class="form-label">Password</label>
+                    <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i data-feather="log-in"></i>
+                    Sign In
+                </button>
+                <p class="text-center mt-2">
+                    <a href="#" class="text-secondary" style="font-size: 0.875rem;">Forgot password?</a>
+                </p>
+            </form>
+
+            <!-- Register Form -->
+            <form class="auth-form" id="registerForm" data-form="register">
+                <div class="form-group">
+                    <label for="registerName" class="form-label">Full Name</label>
+                    <input type="text" id="registerName" class="form-input" placeholder="Enter your name" required autocomplete="name">
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail" class="form-label">Email Address</label>
+                    <input type="email" id="registerEmail" class="form-input" placeholder="Enter your email" required autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword" class="form-label">Password</label>
+                    <input type="password" id="registerPassword" class="form-input" placeholder="Create a password" required autocomplete="new-password">
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword" class="form-label">Confirm Password</label>
+                    <input type="password" id="confirmPassword" class="form-input" placeholder="Confirm your password" required autocomplete="new-password">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i data-feather="user-plus"></i>
+                    Create Account
+                </button>
+            </form>
+
+            <!-- User Info (Shown when logged in) -->
+            <div class="user-info hidden" id="userInfo">
+                <div class="section-header">
+                    <div>
+                        <h3 class="section-title" style="font-size: 1.25rem;">Welcome back!</h3>
+                        <p class="section-subtitle" id="userEmail">user@example.com</p>
+                    </div>
+                    <button type="button" id="logoutBtn" class="btn btn-outline btn-sm">
+                        <i data-feather="log-out"></i>
+                        Logout
+                    </button>
+                </div>
+                <div class="user-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Saved Passwords</span>
+                        <span class="stat-value" id="savedCount">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Generated Today</span>
+                        <span class="stat-value" id="generatedToday">0</span>
+                    </div>
                 </div>
             </div>
-            <div class="control-group">
-                <label for="customInput">Custom Input:</label>
-                <input type="text" id="customInput" placeholder="Enter custom words">
-            </div>
-        </div>
-        <div class="buttons-row">
-            <button type="button" id="generateBtn">Generate</button>
-            <button type="button" id="bulkGenerateBtn">Bulk Generate</button>
-            <button type="button" id="toggleDarkMode">Toggle Dark Mode</button>
-            <button type="button" id="clearHistoryBtn">Clear History</button>
-            <button type="button" id="resetFormBtn">Reset Form</button>
-        </div>
-        <div class="bulk-results" id="bulkResults"></div>
-        <div class="history">
-            <h2>Password History</h2>
-            <ul id="usernameHistory"></ul>
-        </div>
+        </section>
+
+        <!-- Main Content Area -->
+        <main class="main-content" id="mainContent">
+            <!-- Password Generator Section -->
+            <section class="section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Password Generator</h2>
+                        <p class="section-subtitle">Create secure, customizable passwords</p>
+                    </div>
+                    <button type="button" id="savePasswordBtn" class="btn btn-secondary btn-sm hidden">
+                        <i data-feather="save"></i>
+                        Save
+                    </button>
+                </div>
+
+                <!-- Generated Password Display -->
+                <div class="password-display">
+                    <input type="text" id="generatedPassword" class="form-input" placeholder="Click generate to create a password" readonly aria-label="Generated password">
+                    <button type="button" id="copyBtn" class="btn btn-outline btn-icon tooltip" aria-label="Copy password">
+                        <i data-feather="copy"></i>
+                        <span class="tooltip-content">Copy to clipboard</span>
+                    </button>
+                    <button type="button" id="refreshBtn" class="btn btn-outline btn-icon tooltip" aria-label="Generate new password">
+                        <i data-feather="refresh-cw"></i>
+                        <span class="tooltip-content">Generate new</span>
+                    </button>
+                </div>
+
+                <!-- Password Settings -->
+                <div class="controls-grid">
+                    <div class="form-group">
+                        <label for="passwordLength" class="form-label">Password Length</label>
+                        <div class="range-group">
+                            <input type="range" id="passwordLength" class="range-input" min="8" max="64" value="16">
+                            <span class="range-value" id="lengthValue">16</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="passwordTheme" class="form-label">Theme</label>
+                        <select id="passwordTheme" class="form-select">
+                            <option value="default">Random</option>
+                            <option value="fantasy">Fantasy</option>
+                            <option value="sci-fi">Sci-Fi</option>
+                            <option value="professional">Professional</option>
+                            <option value="nature">Nature</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="passwordMood" class="form-label">Mood</label>
+                        <select id="passwordMood" class="form-select">
+                            <option value="default">Default</option>
+                            <option value="happy">Happy</option>
+                            <option value="fierce">Fierce</option>
+                            <option value="calm">Calm</option>
+                            <option value="dark">Dark</option>
+                            <option value="creative">Creative</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Include Characters</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="includeNumbers" checked>
+                                <label for="includeNumbers">Numbers</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="includeSymbols" checked>
+                                <label for="includeSymbols">Symbols</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="includeUppercase" checked>
+                                <label for="includeUppercase">Uppercase</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="includeLowercase" checked>
+                                <label for="includeLowercase">Lowercase</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Input -->
+                <div class="form-group">
+                    <label for="customWords" class="form-label">Custom Words (optional)</label>
+                    <input type="text" id="customWords" class="form-input" placeholder="Enter custom words separated by commas">
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="btn-group">
+                    <button type="button" id="generateBtn" class="btn btn-primary">
+                        <i data-feather="key"></i>
+                        Generate Password
+                    </button>
+                    <button type="button" id="bulkGenerateBtn" class="btn btn-outline">
+                        <i data-feather="layers"></i>
+                        Bulk Generate
+                    </button>
+                    <button type="button" id="strengthCheckBtn" class="btn btn-outline">
+                        <i data-feather="shield"></i>
+                        Check Strength
+                    </button>
+                </div>
+
+                <!-- Bulk Generation Settings -->
+                <div class="form-group hidden" id="bulkSettings">
+                    <label for="bulkCount" class="form-label">Number of passwords to generate</label>
+                    <input type="number" id="bulkCount" class="form-input" min="2" max="50" value="5">
+                </div>
+
+                <!-- Bulk Results -->
+                <div class="bulk-results hidden" id="bulkResults"></div>
+
+                <!-- Password Strength Indicator -->
+                <div class="password-strength hidden" id="passwordStrength">
+                    <div class="strength-bar">
+                        <div class="strength-fill" id="strengthFill"></div>
+                    </div>
+                    <p class="strength-text" id="strengthText">Password strength will appear here</p>
+                </div>
+            </section>
+
+            <!-- Saved Passwords Section -->
+            <section class="section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Saved Passwords</h2>
+                        <p class="section-subtitle">Manage your password collection</p>
+                    </div>
+                    <div class="btn-group">
+                        <button type="button" id="searchToggleBtn" class="btn btn-outline btn-sm">
+                            <i data-feather="search"></i>
+                        </button>
+                        <button type="button" id="clearAllBtn" class="btn btn-outline btn-sm">
+                            <i data-feather="trash-2"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="form-group hidden" id="searchGroup">
+                    <input type="text" id="passwordSearch" class="form-input" placeholder="Search saved passwords...">
+                </div>
+
+                <!-- Saved Passwords List -->
+                <div class="password-list" id="savedPasswordsList">
+                    <div class="text-center" style="padding: 2rem; color: var(--text-secondary);">
+                        <i data-feather="lock" style="width: 48px; height: 48px; margin-bottom: 1rem;"></i>
+                        <p>No saved passwords yet. Generate and save your first password!</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Password History Section -->
+            <section class="section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Recent History</h2>
+                        <p class="section-subtitle">Recently generated passwords</p>
+                    </div>
+                    <button type="button" id="clearHistoryBtn" class="btn btn-outline btn-sm">
+                        <i data-feather="x"></i>
+                        Clear
+                    </button>
+                </div>
+
+                <div class="password-list" id="passwordHistory">
+                    <!-- History items will be populated here -->
+                </div>
+            </section>
+        </main>
     </div>
+
+    <!-- Alert/Notification Container -->
+    <div id="alertContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
     <script src="script.js"></script>
+    <script>
+        // Initialize Feather Icons
+        feather.replace();
+    </script>
 </body>
 </html>
