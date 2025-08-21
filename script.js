@@ -11,6 +11,7 @@ class SecurePassApp {
         this.loadThemePreference();
         await this.checkAuthStatus();
         this.loadPasswordHistory();
+        this.loadSavedPasswords();
         
         // Initialize Feather icons
         if (typeof feather !== 'undefined') {
@@ -88,29 +89,14 @@ class SecurePassApp {
     }
 
     async checkAuthStatus() {
-        if (!this.authToken) {
+        // For GitHub Pages - check localStorage for demo user
+        const savedUser = localStorage.getItem('demoUser');
+        if (savedUser) {
+            this.currentUser = JSON.parse(savedUser);
+            this.showMainApp();
+            this.loadUserStats();
+        } else {
             this.showAuthSection();
-            return;
-        }
-
-        try {
-            const response = await fetch('/api/auth/verify', {
-                headers: {
-                    'Authorization': `Bearer ${this.authToken}`
-                }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                this.currentUser = data.user;
-                this.showMainApp();
-                await this.loadUserStats();
-            } else {
-                this.handleLogout();
-            }
-        } catch (error) {
-            console.error('Auth check failed:', error);
-            this.handleLogout();
         }
     }
 
@@ -124,25 +110,26 @@ class SecurePassApp {
 
         try {
             this.showLoading(e.target);
-            const response = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(loginData)
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                this.authToken = data.token;
-                this.currentUser = data.user;
-                localStorage.setItem('authToken', this.authToken);
-                this.showAlert('Login successful!', 'success');
+            
+            // For GitHub Pages - simulate authentication
+            if (loginData.email && loginData.password) {
+                // Demo authentication - in real app this would be server-side
+                const demoUser = {
+                    id: 1,
+                    name: 'Demo User',
+                    email: loginData.email,
+                    created_at: new Date().toISOString()
+                };
+                
+                this.currentUser = demoUser;
+                localStorage.setItem('demoUser', JSON.stringify(demoUser));
+                localStorage.setItem('authToken', 'demo-token-' + Date.now());
+                
+                this.showAlert('Login successful! (Demo Mode)', 'success');
                 this.showMainApp();
-                await this.loadUserStats();
+                this.loadUserStats();
             } else {
-                this.showAlert(data.message || 'Login failed', 'error');
+                this.showAlert('Please enter email and password', 'error');
             }
         } catch (error) {
             console.error('Login error:', error);
@@ -169,25 +156,25 @@ class SecurePassApp {
 
         try {
             this.showLoading(e.target);
-            const response = await fetch('/api/auth/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(registerData)
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                this.authToken = data.token;
-                this.currentUser = data.user;
-                localStorage.setItem('authToken', this.authToken);
-                this.showAlert('Account created successfully!', 'success');
+            
+            // For GitHub Pages - simulate registration
+            if (registerData.name && registerData.email && registerData.password) {
+                const demoUser = {
+                    id: Date.now(),
+                    name: registerData.name,
+                    email: registerData.email,
+                    created_at: new Date().toISOString()
+                };
+                
+                this.currentUser = demoUser;
+                localStorage.setItem('demoUser', JSON.stringify(demoUser));
+                localStorage.setItem('authToken', 'demo-token-' + Date.now());
+                
+                this.showAlert('Account created successfully! (Demo Mode)', 'success');
                 this.showMainApp();
-                await this.loadUserStats();
+                this.loadUserStats();
             } else {
-                this.showAlert(data.message || 'Registration failed', 'error');
+                this.showAlert('Please fill in all fields', 'error');
             }
         } catch (error) {
             console.error('Registration error:', error);
@@ -201,6 +188,7 @@ class SecurePassApp {
         this.authToken = null;
         this.currentUser = null;
         localStorage.removeItem('authToken');
+        localStorage.removeItem('demoUser');
         this.showAuthSection();
         this.showAlert('Logged out successfully', 'info');
     }
@@ -223,22 +211,24 @@ class SecurePassApp {
     }
 
     async loadUserStats() {
-        if (!this.authToken) return;
-
+        // For GitHub Pages - simulate user stats from localStorage
         try {
-            const response = await fetch('/api/users/stats', {
-                headers: {
-                    'Authorization': `Bearer ${this.authToken}`
-                }
-            });
-
-            if (response.ok) {
-                const stats = await response.json();
-                document.getElementById('savedCount').textContent = stats.saved_count || 0;
-                document.getElementById('generatedToday').textContent = stats.generated_today || 0;
-            }
+            const savedPasswords = JSON.parse(localStorage.getItem('savedPasswords') || '[]');
+            const passwordHistory = JSON.parse(localStorage.getItem('passwordHistory') || '[]');
+            
+            // Count passwords generated today
+            const today = new Date().toDateString();
+            const generatedToday = passwordHistory.filter(item => {
+                const itemDate = new Date(item.timestamp).toDateString();
+                return itemDate === today;
+            }).length;
+            
+            document.getElementById('savedCount').textContent = savedPasswords.length || 0;
+            document.getElementById('generatedToday').textContent = generatedToday || 0;
         } catch (error) {
             console.error('Failed to load user stats:', error);
+            document.getElementById('savedCount').textContent = '0';
+            document.getElementById('generatedToday').textContent = '0';
         }
     }
 
@@ -794,7 +784,61 @@ class SecurePassApp {
 
     clearAllPasswords() {
         if (confirm('Are you sure you want to clear all saved passwords?')) {
-            this.showAlert('Clear all passwords feature requires backend implementation', 'info');
+            localStorage.removeItem('savedPasswords');
+            this.loadSavedPasswords();
+            this.loadUserStats();
+            this.showAlert('All saved passwords cleared', 'info');
+        }
+    }
+
+    loadSavedPasswords() {
+        const container = document.getElementById('savedPasswordsList');
+        if (!container) return;
+
+        const savedPasswords = JSON.parse(localStorage.getItem('savedPasswords') || '[]');
+        
+        if (savedPasswords.length === 0) {
+            container.innerHTML = `
+                <div class="text-center" style="padding: 2rem; color: var(--text-secondary);">
+                    <i data-feather="lock" style="width: 48px; height: 48px; margin-bottom: 1rem;"></i>
+                    <p>No saved passwords yet. Generate and save your first password!</p>
+                </div>
+            `;
+            feather.replace();
+            return;
+        }
+
+        container.innerHTML = savedPasswords.map(item => `
+            <div class="password-item">
+                <div>
+                    <div class="password-text">${item.password}</div>
+                    <div class="password-meta">
+                        ${item.title} • Saved: ${new Date(item.created_at).toLocaleString()}
+                        ${item.website ? ` • ${item.website}` : ''}
+                    </div>
+                </div>
+                <div class="password-actions">
+                    <button class="btn btn-outline btn-sm" onclick="app.copyToClipboard('${item.password}')" title="Copy">
+                        <i data-feather="copy"></i>
+                    </button>
+                    <button class="btn btn-outline btn-sm" onclick="app.deleteSavedPassword(${item.id})" title="Delete">
+                        <i data-feather="trash-2"></i>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+
+        feather.replace();
+    }
+
+    deleteSavedPassword(id) {
+        if (confirm('Are you sure you want to delete this password?')) {
+            const savedPasswords = JSON.parse(localStorage.getItem('savedPasswords') || '[]');
+            const filtered = savedPasswords.filter(item => item.id !== id);
+            localStorage.setItem('savedPasswords', JSON.stringify(filtered));
+            this.loadSavedPasswords();
+            this.loadUserStats();
+            this.showAlert('Password deleted', 'info');
         }
     }
 
@@ -805,7 +849,31 @@ class SecurePassApp {
             return;
         }
 
-        this.showAlert('Save password feature requires backend implementation', 'info');
+        // For GitHub Pages - save to localStorage
+        try {
+            const savedPasswords = JSON.parse(localStorage.getItem('savedPasswords') || '[]');
+            const newSavedPassword = {
+                id: Date.now(),
+                password: password,
+                title: `Password ${savedPasswords.length + 1}`,
+                website: '',
+                username: '',
+                notes: '',
+                category: 'generated',
+                created_at: new Date().toISOString(),
+                user_id: this.currentUser?.id || 'demo'
+            };
+            
+            savedPasswords.unshift(newSavedPassword);
+            localStorage.setItem('savedPasswords', JSON.stringify(savedPasswords));
+            
+            this.showAlert('Password saved successfully!', 'success');
+            this.loadUserStats();
+            this.loadSavedPasswords();
+        } catch (error) {
+            console.error('Failed to save password:', error);
+            this.showAlert('Failed to save password', 'error');
+        }
     }
 }
 

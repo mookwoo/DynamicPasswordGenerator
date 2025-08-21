@@ -7,3 +7,9 @@ node_modules/
 
 # Ignore MacOS specific system files
 .DS_Store
+
+# Ignore environment files for backend (not needed for GitHub Pages)
+.env
+
+# Ignore database files (not needed for frontend-only version)
+database/securepass.db
