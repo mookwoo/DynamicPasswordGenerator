@@ -1,6 +1,6 @@
 {
   "name": "securepass-generator",
-  "version": "1.0.0",
+  "version": "2.2.0",
   "description": "Advanced password generator with secure user management and password storage",
   "main": "server.js",
   "scripts": {
