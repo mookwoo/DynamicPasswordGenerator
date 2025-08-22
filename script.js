@@ -3,6 +3,15 @@ class SecurePassApp {
     constructor() {
         this.currentUser = null;
         this.authToken = localStorage.getItem('authToken');
+        
+        // Password presets configuration
+        this.PRESETS = {
+            Gaming:  { length: 16, upper: true,  lower: true,  numbers: true,  symbols: false },
+            Work:    { length: 20, upper: true,  lower: true,  numbers: true,  symbols: true  },
+            Banking: { length: 24, upper: true,  lower: true,  numbers: true,  symbols: true  },
+            Social:  { length: 14, upper: true,  lower: true,  numbers: true,  symbols: false }
+        };
+        
         this.initializeApp();
     }
 
@@ -43,6 +52,12 @@ class SecurePassApp {
         document.getElementById('passwordLength')?.addEventListener('input', (e) => this.updateLengthDisplay(e.target.value));
         document.getElementById('bulkGenerateBtn')?.addEventListener('click', () => this.toggleBulkGeneration());
         document.getElementById('strengthCheckBtn')?.addEventListener('click', () => this.checkPasswordStrength());
+
+        // Password presets
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('.preset-btn');
+            if (btn) this.applyPreset(btn.dataset.preset);
+        });
 
         // Password management
         document.getElementById('searchToggleBtn')?.addEventListener('click', () => this.toggleSearch());
@@ -545,6 +560,33 @@ class SecurePassApp {
         if (display) {
             display.textContent = value;
         }
+    }
+
+    applyPreset(presetName) {
+        const preset = this.PRESETS[presetName];
+        if (!preset) return;
+
+        // UI elements mapping to the existing form controls
+        const ui = {
+            length: document.querySelector('#passwordLength'),
+            upper:  document.querySelector('#includeUppercase'),
+            lower:  document.querySelector('#includeLowercase'),
+            numbers:document.querySelector('#includeNumbers'),
+            symbols:document.querySelector('#includeSymbols')
+        };
+
+        // Apply preset values to form controls
+        if (ui.length) ui.length.value = preset.length;
+        if (ui.upper) ui.upper.checked = preset.upper;
+        if (ui.lower) ui.lower.checked = preset.lower;
+        if (ui.numbers) ui.numbers.checked = preset.numbers;
+        if (ui.symbols) ui.symbols.checked = preset.symbols;
+
+        // Update length display
+        this.updateLengthDisplay(preset.length);
+
+        // Show feedback to user
+        this.showAlert(`${presetName} preset applied!`, 'success');
     }
 
     copyPassword() {
