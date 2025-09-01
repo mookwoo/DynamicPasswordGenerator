@@ -55,11 +55,31 @@ router.get('/', (req, res) => {
   db.all('SELECT * FROM saved_passwords WHERE user_id = ? ORDER BY created_at DESC', [req.user.id], (err, rows) => {
     db.close();
     if (err) return res.status(500).json({ message: 'DB error' });
+    const now = Date.now();
+    const ROTATE_TARGET_DAYS = 90; // threshold for recommendation
     const data = rows.map(r => {
       const pw = decrypt(r.password_encrypted);
-      return { id: r.id, title: r.title, website: r.website, username: r.username, category: r.category, created_at: r.created_at, strength_score: calcStrength(pw) };
+      const createdTs = Date.parse(r.created_at + 'Z') || Date.parse(r.created_at) || now;
+      let ageDays = Math.floor((now - createdTs) / (1000 * 60 * 60 * 24));
+      if (ageDays < 0 || Number.isNaN(ageDays)) ageDays = 0;
+      const pct = Math.min(ageDays / ROTATE_TARGET_DAYS, 1);
+      let age_stage = 'fresh';
+      if (ageDays >= 90) age_stage = 'stale'; else if (ageDays >= 30) age_stage = 'aging';
+      return {
+        id: r.id,
+        title: r.title,
+        website: r.website,
+        username: r.username,
+        category: r.category,
+        created_at: r.created_at,
+        strength_score: calcStrength(pw),
+        age_days: ageDays,
+        age_percent: pct,
+        age_stage,
+        rotate_recommended: age_stage === 'stale'
+      };
     });
-    res.json({ passwords: data });
+    res.json({ passwords: data, rotate_after_days: ROTATE_TARGET_DAYS });
   });
 });
 

@@ -841,6 +841,7 @@ class SecurePassApp {
             .then(r => r.json())
             .then(data => {
                 const list = data.passwords || [];
+                const rotateAfter = data.rotate_after_days || 90;
                 if (list.length === 0) {
                     container.innerHTML = `
                         <div class="text-center" style="padding: 2rem; color: var(--text-secondary);">
@@ -852,11 +853,17 @@ class SecurePassApp {
                 }
                 container.innerHTML = list.map(item => {
                     const strengthLabel = item.strength_score >= 80 ? 'Very Strong' : item.strength_score >= 60 ? 'Strong' : item.strength_score >= 40 ? 'Moderate' : 'Weak';
+                    const ageBarWidth = Math.min(100, Math.round(item.age_percent * 100));
+                    let ageColor = '#10b981'; // green
+                    if (item.age_stage === 'aging') ageColor = '#f59e0b';
+                    if (item.age_stage === 'stale') ageColor = '#ef4444';
+                    const rotateBadge = item.rotate_recommended ? `<span class="rotate-badge" title="Consider rotating this password">Rotate</span>` : '';
                     return `
                         <div class="password-item">
-                            <div>
-                                <div class="password-text">${item.title}</div>
-                                <div class="password-meta">Saved: ${new Date(item.created_at).toLocaleString()} • Strength: ${strengthLabel} (${item.strength_score})</div>
+                            <div style="flex:1;">
+                                <div class="password-text">${item.title} ${rotateBadge}</div>
+                                <div class="password-meta">Saved: ${new Date(item.created_at).toLocaleString()} • Strength: ${strengthLabel} (${item.strength_score}) • Age: ${item.age_days}d / ${rotateAfter}d</div>
+                                <div class="age-bar"><div class="age-bar-fill" style="width:${ageBarWidth}%;background:${ageColor};"></div></div>
                             </div>
                             <div class="password-actions">
                                 <button class="btn btn-outline btn-sm" onclick="app.sharePassword(${item.id})" title="Share"><i data-feather="share-2"></i></button>

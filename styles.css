@@ -438,6 +438,34 @@ body {
     gap: 0.5rem;
 }
 
+/* Age / rotation visuals */
+.age-bar {
+    margin-top: 0.4rem;
+    width: 100%;
+    height: 6px;
+    background: var(--border-color);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+}
+.age-bar-fill {
+    height: 100%;
+    transition: width 0.4s ease;
+}
+.rotate-badge {
+    display: inline-block;
+    margin-left: 0.5rem;
+    background: #ef4444;
+    color: #fff;
+    font-size: 0.55rem;
+    font-weight: 600;
+    padding: 0.25rem 0.4rem;
+    border-radius: 0.35rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    vertical-align: middle;
+}
+
 /* Bulk Results */
 .bulk-results {
     display: grid;
