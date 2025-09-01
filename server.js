@@ -6,6 +6,8 @@ const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 const path = require('path');
 require('dotenv').config();
+const authRoutes = require('./routes/api/auth');
+const passwordRoutes = require('./routes/api/passwords');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -51,8 +53,12 @@ app.use(cookieParser());
 // Logging
 app.use(morgan('combined'));
 
-// Serve static files (your current HTML, CSS, JS)
+// Serve static files
 app.use(express.static(path.join(__dirname)));
+
+// API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/passwords', passwordRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -66,10 +72,9 @@ app.get('/api/health', (req, res) => {
 // Serve frontend for any non-API routes (SPA support)
 app.get('*', (req, res) => {
     if (!req.path.startsWith('/api')) {
-        res.sendFile(path.join(__dirname, 'index.html'));
-    } else {
-        res.status(404).json({ message: 'API route not found' });
+        return res.sendFile(path.join(__dirname, 'index.html'));
     }
+    return res.status(404).json({ message: 'API route not found' });
 });
 
 // Start server

@@ -79,10 +79,26 @@ function initializeDatabase() {
                 else console.log('✅ Password history table created/verified');
             });
 
+            // Share tokens table for one-time password sharing
+            db.run(`
+                CREATE TABLE IF NOT EXISTS share_tokens (
+                    token TEXT PRIMARY KEY,
+                    password_encrypted TEXT NOT NULL,
+                    expires_at INTEGER NOT NULL,
+                    user_id INTEGER NOT NULL,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+                )
+            `, (err) => {
+                if (err) console.error('Error creating share_tokens table:', err);
+                else console.log('✅ Share tokens table created/verified');
+            });
+
             // Create indexes for better performance
             db.run(`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`);
             db.run(`CREATE INDEX IF NOT EXISTS idx_saved_passwords_user_id ON saved_passwords(user_id)`);
             db.run(`CREATE INDEX IF NOT EXISTS idx_password_history_user_id ON password_history(user_id)`);
+            db.run(`CREATE INDEX IF NOT EXISTS idx_share_tokens_user_id ON share_tokens(user_id)`);
 
             console.log('✅ Database indexes created/verified');
         });

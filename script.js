@@ -98,51 +98,46 @@ class SecurePassApp {
     }
 
     async checkAuthStatus() {
-        // For GitHub Pages - check localStorage for demo user
-        const savedUser = localStorage.getItem('demoUser');
-        if (savedUser) {
-            this.currentUser = JSON.parse(savedUser);
-            this.showMainApp();
-            this.loadUserStats();
-        } else {
-            this.showAuthSection();
+        const token = localStorage.getItem('authToken');
+        const userRaw = localStorage.getItem('user');
+        if (token && userRaw) {
+            try {
+                this.currentUser = JSON.parse(userRaw);
+                this.showMainApp();
+                this.loadSavedPasswords();
+                this.loadUserStats();
+                return;
+            } catch (_) {
+                // fall through
+            }
         }
+        this.showAuthSection();
     }
 
     async handleLogin(e) {
         e.preventDefault();
-        const formData = new FormData(e.target);
-        const loginData = {
-            email: formData.get('email') || document.getElementById('loginEmail').value,
-            password: formData.get('password') || document.getElementById('loginPassword').value
-        };
-
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        if (!email || !password) return this.showAlert('Please enter email and password', 'error');
         try {
             this.showLoading(e.target);
-            
-            // For GitHub Pages - simulate authentication
-            if (loginData.email && loginData.password) {
-                // Demo authentication - in real app this would be server-side
-                const demoUser = {
-                    id: 1,
-                    name: 'Demo User',
-                    email: loginData.email,
-                    created_at: new Date().toISOString()
-                };
-                
-                this.currentUser = demoUser;
-                localStorage.setItem('demoUser', JSON.stringify(demoUser));
-                localStorage.setItem('authToken', 'demo-token-' + Date.now());
-                
-                this.showAlert('Login successful! (Demo Mode)', 'success');
-                this.showMainApp();
-                this.loadUserStats();
-            } else {
-                this.showAlert('Please enter email and password', 'error');
-            }
-        } catch (error) {
-            console.error('Login error:', error);
-            this.showAlert('Login failed. Please try again.', 'error');
+            const resp = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            if (!resp.ok) throw new Error('Login failed');
+            const data = await resp.json();
+            localStorage.setItem('authToken', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            this.currentUser = data.user;
+            this.showMainApp();
+            this.loadSavedPasswords();
+            this.loadUserStats();
+            this.showAlert('Login successful', 'success');
+        } catch (err) {
+            console.error(err);
+            this.showAlert('Login failed', 'error');
         } finally {
             this.hideLoading(e.target);
         }
@@ -150,44 +145,31 @@ class SecurePassApp {
 
     async handleRegister(e) {
         e.preventDefault();
-        const formData = new FormData(e.target);
-        const registerData = {
-            name: formData.get('name') || document.getElementById('registerName').value,
-            email: formData.get('email') || document.getElementById('registerEmail').value,
-            password: formData.get('password') || document.getElementById('registerPassword').value
-        };
-
+        const name = document.getElementById('registerName').value;
+        const email = document.getElementById('registerEmail').value;
+        const password = document.getElementById('registerPassword').value;
         const confirmPassword = document.getElementById('confirmPassword').value;
-        if (registerData.password !== confirmPassword) {
-            this.showAlert('Passwords do not match', 'error');
-            return;
-        }
-
+        if (password !== confirmPassword) return this.showAlert('Passwords do not match', 'error');
+        if (!name || !email || !password) return this.showAlert('Please fill in all fields', 'error');
         try {
             this.showLoading(e.target);
-            
-            // For GitHub Pages - simulate registration
-            if (registerData.name && registerData.email && registerData.password) {
-                const demoUser = {
-                    id: Date.now(),
-                    name: registerData.name,
-                    email: registerData.email,
-                    created_at: new Date().toISOString()
-                };
-                
-                this.currentUser = demoUser;
-                localStorage.setItem('demoUser', JSON.stringify(demoUser));
-                localStorage.setItem('authToken', 'demo-token-' + Date.now());
-                
-                this.showAlert('Account created successfully! (Demo Mode)', 'success');
-                this.showMainApp();
-                this.loadUserStats();
-            } else {
-                this.showAlert('Please fill in all fields', 'error');
-            }
-        } catch (error) {
-            console.error('Registration error:', error);
-            this.showAlert('Registration failed. Please try again.', 'error');
+            const resp = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, password })
+            });
+            if (!resp.ok) throw new Error('Registration failed');
+            const data = await resp.json();
+            localStorage.setItem('authToken', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            this.currentUser = data.user;
+            this.showMainApp();
+            this.loadSavedPasswords();
+            this.loadUserStats();
+            this.showAlert('Account created', 'success');
+        } catch (err) {
+            console.error(err);
+            this.showAlert('Registration failed', 'error');
         } finally {
             this.hideLoading(e.target);
         }
@@ -197,7 +179,7 @@ class SecurePassApp {
         this.authToken = null;
         this.currentUser = null;
         localStorage.removeItem('authToken');
-        localStorage.removeItem('demoUser');
+        localStorage.removeItem('user');
         this.showAuthSection();
         this.showAlert('Logged out successfully', 'info');
     }
@@ -850,85 +832,86 @@ class SecurePassApp {
     loadSavedPasswords() {
         const container = document.getElementById('savedPasswordsList');
         if (!container) return;
-
-        const savedPasswords = JSON.parse(localStorage.getItem('savedPasswords') || '[]');
-        
-        if (savedPasswords.length === 0) {
-            container.innerHTML = `
-                <div class="text-center" style="padding: 2rem; color: var(--text-secondary);">
-                    <i data-feather="lock" style="width: 48px; height: 48px; margin-bottom: 1rem;"></i>
-                    <p>No saved passwords yet. Generate and save your first password!</p>
-                </div>
-            `;
-            feather.replace();
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            container.innerHTML = '<div class="text-center" style="padding:2rem;color:var(--text-secondary);">Login to view saved passwords.</div>';
             return;
         }
-
-        container.innerHTML = savedPasswords.map(item => `
-            <div class="password-item">
-                <div>
-                    <div class="password-text">${item.password}</div>
-                    <div class="password-meta">
-                        ${item.title} • Saved: ${new Date(item.created_at).toLocaleString()}
-                        ${item.website ? ` • ${item.website}` : ''}
-                    </div>
-                </div>
-                <div class="password-actions">
-                    <button class="btn btn-outline btn-sm" onclick="app.copyToClipboard('${item.password}')" title="Copy">
-                        <i data-feather="copy"></i>
-                    </button>
-                    <button class="btn btn-outline btn-sm" onclick="app.deleteSavedPassword(${item.id})" title="Delete">
-                        <i data-feather="trash-2"></i>
-                    </button>
-                </div>
-            </div>
-        `).join('');
-
-        feather.replace();
+        fetch('/api/passwords', { headers: { 'Authorization': 'Bearer ' + token }})
+            .then(r => r.json())
+            .then(data => {
+                const list = data.passwords || [];
+                if (list.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center" style="padding: 2rem; color: var(--text-secondary);">
+                            <i data-feather="lock" style="width: 48px; height: 48px; margin-bottom: 1rem;"></i>
+                            <p>No saved passwords yet.</p>
+                        </div>`;
+                    feather.replace();
+                    return;
+                }
+                container.innerHTML = list.map(item => {
+                    const strengthLabel = item.strength_score >= 80 ? 'Very Strong' : item.strength_score >= 60 ? 'Strong' : item.strength_score >= 40 ? 'Moderate' : 'Weak';
+                    return `
+                        <div class="password-item">
+                            <div>
+                                <div class="password-text">${item.title}</div>
+                                <div class="password-meta">Saved: ${new Date(item.created_at).toLocaleString()} • Strength: ${strengthLabel} (${item.strength_score})</div>
+                            </div>
+                            <div class="password-actions">
+                                <button class="btn btn-outline btn-sm" onclick="app.sharePassword(${item.id})" title="Share"><i data-feather="share-2"></i></button>
+                                <button class="btn btn-outline btn-sm" onclick="app.deleteSavedPassword(${item.id})" title="Delete"><i data-feather="trash-2"></i></button>
+                            </div>
+                        </div>`;
+                }).join('');
+                feather.replace();
+            })
+            .catch(() => {
+                container.innerHTML = '<div class="text-center" style="padding:2rem;color:var(--text-secondary);">Failed to load passwords.</div>';
+            });
     }
 
     deleteSavedPassword(id) {
-        if (confirm('Are you sure you want to delete this password?')) {
-            const savedPasswords = JSON.parse(localStorage.getItem('savedPasswords') || '[]');
-            const filtered = savedPasswords.filter(item => item.id !== id);
-            localStorage.setItem('savedPasswords', JSON.stringify(filtered));
-            this.loadSavedPasswords();
-            this.loadUserStats();
-            this.showAlert('Password deleted', 'info');
-        }
+        if (!confirm('Delete this password?')) return;
+        const token = localStorage.getItem('authToken');
+        if (!token) return this.showAlert('Login required', 'error');
+        fetch(`/api/passwords/${id}`, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token }})
+            .then(r => { if (!r.ok) throw new Error(); this.showAlert('Deleted', 'info'); this.loadSavedPasswords(); this.loadUserStats(); })
+            .catch(() => this.showAlert('Delete failed', 'error'));
     }
 
     async saveCurrentPassword() {
         const password = document.getElementById('generatedPassword')?.value;
-        if (!password) {
-            this.showAlert('No password to save', 'error');
-            return;
-        }
-
-        // For GitHub Pages - save to localStorage
+        if (!password) return this.showAlert('No password to save', 'error');
+        const token = localStorage.getItem('authToken');
+        if (!token) return this.showAlert('Login required', 'error');
         try {
-            const savedPasswords = JSON.parse(localStorage.getItem('savedPasswords') || '[]');
-            const newSavedPassword = {
-                id: Date.now(),
-                password: password,
-                title: `Password ${savedPasswords.length + 1}`,
-                website: '',
-                username: '',
-                notes: '',
-                category: 'generated',
-                created_at: new Date().toISOString(),
-                user_id: this.currentUser?.id || 'demo'
-            };
-            
-            savedPasswords.unshift(newSavedPassword);
-            localStorage.setItem('savedPasswords', JSON.stringify(savedPasswords));
-            
-            this.showAlert('Password saved successfully!', 'success');
-            this.loadUserStats();
+            const resp = await fetch('/api/passwords', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ password })
+            });
+            if (!resp.ok) throw new Error('Save failed');
+            this.showAlert('Password saved', 'success');
             this.loadSavedPasswords();
-        } catch (error) {
-            console.error('Failed to save password:', error);
-            this.showAlert('Failed to save password', 'error');
+            this.loadUserStats();
+        } catch (e) {
+            this.showAlert('Save failed', 'error');
+        }
+    }
+
+    async sharePassword(id) {
+        const token = localStorage.getItem('authToken');
+        if (!token) return this.showAlert('Login required', 'error');
+        try {
+            const resp = await fetch(`/api/passwords/${id}/share`, { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } });
+            if (!resp.ok) throw new Error();
+            const data = await resp.json();
+            const full = location.origin + data.share_url;
+            navigator.clipboard.writeText(full).catch(()=>{});
+            this.showAlert('Share link copied (valid 10 min)', 'success');
+        } catch (_) {
+            this.showAlert('Share failed', 'error');
         }
     }
 }
