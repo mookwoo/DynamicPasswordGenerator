@@ -45,12 +45,12 @@
                     <label for="loginPassword" class="form-label">Password</label>
                     <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password" required autocomplete="current-password">
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                <button type="submit" class="btn btn-primary btn-full-width">
                     <i data-feather="log-in"></i>
                     Sign In
                 </button>
                 <p class="text-center mt-2">
-                    <a href="#" class="text-secondary" style="font-size: 0.875rem;">Forgot password?</a>
+                    <a href="#" class="text-secondary forgot-password-link">Forgot password?</a>
                 </p>
             </form>
 
@@ -72,7 +72,7 @@
                     <label for="confirmPassword" class="form-label">Confirm Password</label>
                     <input type="password" id="confirmPassword" class="form-input" placeholder="Confirm your password" required autocomplete="new-password">
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                <button type="submit" class="btn btn-primary btn-full-width">
                     <i data-feather="user-plus"></i>
                     Create Account
                 </button>
@@ -82,7 +82,7 @@
             <div class="user-info hidden" id="userInfo">
                 <div class="section-header">
                     <div>
-                        <h3 class="section-title" style="font-size: 1.25rem;">Welcome back!</h3>
+                        <h3 class="section-title welcome-title">Welcome back!</h3>
                         <p class="section-subtitle" id="userEmail">user@example.com</p>
                     </div>
                     <button type="button" id="logoutBtn" class="btn btn-outline btn-sm">
@@ -244,10 +244,10 @@
                         <p class="section-subtitle">Manage your password collection</p>
                     </div>
                     <div class="btn-group">
-                        <button type="button" id="searchToggleBtn" class="btn btn-outline btn-sm">
+                        <button type="button" id="searchToggleBtn" class="btn btn-outline btn-sm" title="Toggle search">
                             <i data-feather="search"></i>
                         </button>
-                        <button type="button" id="clearAllBtn" class="btn btn-outline btn-sm">
+                        <button type="button" id="clearAllBtn" class="btn btn-outline btn-sm" title="Clear all saved passwords">
                             <i data-feather="trash-2"></i>
                         </button>
                     </div>
@@ -260,8 +260,8 @@
 
                 <!-- Saved Passwords List -->
                 <div class="password-list" id="savedPasswordsList">
-                    <div class="text-center" style="padding: 2rem; color: var(--text-secondary);">
-                        <i data-feather="lock" style="width: 48px; height: 48px; margin-bottom: 1rem;"></i>
+                    <div class="text-center empty-state">
+                        <i data-feather="lock" class="empty-state-icon"></i>
                         <p>No saved passwords yet. Generate and save your first password!</p>
                     </div>
                 </div>

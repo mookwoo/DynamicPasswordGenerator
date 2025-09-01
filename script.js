@@ -54,9 +54,8 @@ class SecurePassApp {
         document.getElementById('strengthCheckBtn')?.addEventListener('click', () => this.checkPasswordStrength());
 
         // Password presets
-        document.addEventListener('click', (e) => {
-            const btn = e.target.closest('.preset-btn');
-            if (btn) this.applyPreset(btn.dataset.preset);
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => this.applyPreset(btn.dataset.preset));
         });
 
         // Password management
@@ -313,38 +312,44 @@ class SecurePassApp {
     }
 
     async createPassword(settings) {
-        const { theme, mood, customWords, length } = settings;
-        let basePassword = '';
+        const { length, includeNumbers, includeSymbols, includeUppercase, includeLowercase } = settings;
+        let charSet = '';
+        let password = [];
 
-        if (customWords.trim()) {
-            const words = customWords.split(',').map(w => w.trim()).filter(w => w);
-            basePassword = words[Math.floor(Math.random() * words.length)];
-        } else {
-            // Enhanced mood and theme system with fallback word banks
-            try {
-                const { adjectives, nouns } = await this.getThemedWords(theme, mood);
-                
-                if (adjectives.length > 0 && nouns.length > 0) {
-                    const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
-                    const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
-                    basePassword = this.capitalizeFirst(randomAdjective) + this.capitalizeFirst(randomNoun);
-                } else {
-                    // Fallback to local word banks
-                    const localWords = this.getLocalMoodWords(mood, theme);
-                    basePassword = localWords.adjective + localWords.noun;
-                }
-            } catch (error) {
-                console.error('Error fetching words:', error);
-                const localWords = this.getLocalMoodWords(mood, theme);
-                basePassword = localWords.adjective + localWords.noun;
-            }
+        if (includeLowercase) {
+            charSet += 'abcdefghijklmnopqrstuvwxyz';
+            password.push('abcdefghijklmnopqrstuvwxyz'[Math.floor(Math.random() * 26)]);
+        }
+        if (includeUppercase) {
+            charSet += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            password.push('ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random() * 26)]);
+        }
+        if (includeNumbers) {
+            charSet += '0123456789';
+            password.push('0123456789'[Math.floor(Math.random() * 10)]);
+        }
+        if (includeSymbols) {
+            const symbols = "!@#$%^&*()_+-=[]{}|;:'\",.<>?";
+            charSet += symbols;
+            password.push(symbols[Math.floor(Math.random() * symbols.length)]);
         }
 
-        // Apply character type settings
-        basePassword = this.applyCharacterTypes(basePassword, settings);
-        
-        // Adjust to desired length
-        return this.adjustPasswordLength(basePassword, length);
+        if (charSet === '') {
+            this.showAlert('Please select at least one character type.', 'error');
+            return '';
+        }
+
+        for (let i = password.length; i < length; i++) {
+            password.push(charSet[Math.floor(Math.random() * charSet.length)]);
+        }
+
+        // Shuffle the password array to ensure randomness
+        for (let i = password.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [password[i], password[j]] = [password[j], password[i]];
+        }
+
+        return password.join('');
     }
 
     async getThemedWords(theme, mood) {
@@ -545,14 +550,14 @@ class SecurePassApp {
 
     adjustPasswordLength(password, length) {
         if (password.length > length) {
-            return password.substring(0, length);
+            return password.slice(0, length);
         }
-        
-        while (password.length < length) {
-            password += password.charAt(Math.floor(Math.random() * password.length));
+        let result = password;
+        while (result.length < length) {
+            const charSet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:\'",.<>?';
+            result += charSet[Math.floor(Math.random() * charSet.length)];
         }
-        
-        return password;
+        return result;
     }
 
     updateLengthDisplay(value) {

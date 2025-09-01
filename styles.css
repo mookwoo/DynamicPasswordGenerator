@@ -142,15 +142,9 @@ body {
     height: fit-content;
 }
 
-/* Special grid layout for password generator */
-.section:first-child {
+/* The first section (Password Generator) will span both columns */
+.main-content > .section:first-child {
     grid-column: 1 / -1;
-}
-
-@media (min-width: 1200px) {
-    .section:first-child {
-        grid-column: 1 / -1;
-    }
 }
 
 .section-header {
