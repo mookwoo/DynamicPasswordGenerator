@@ -53,11 +53,6 @@ class SecurePassApp {
         document.getElementById('bulkGenerateBtn')?.addEventListener('click', () => this.toggleBulkGeneration());
         document.getElementById('strengthCheckBtn')?.addEventListener('click', () => this.checkPasswordStrength());
 
-        // Password presets
-        document.querySelectorAll('.preset-btn').forEach(btn => {
-            btn.addEventListener('click', () => this.applyPreset(btn.dataset.preset));
-        });
-
         // Password management
         document.getElementById('searchToggleBtn')?.addEventListener('click', () => this.toggleSearch());
         document.getElementById('clearAllBtn')?.addEventListener('click', () => this.clearAllPasswords());
@@ -312,44 +307,38 @@ class SecurePassApp {
     }
 
     async createPassword(settings) {
-        const { length, includeNumbers, includeSymbols, includeUppercase, includeLowercase } = settings;
-        let charSet = '';
-        let password = [];
+        const { theme, mood, customWords, length } = settings;
+        let basePassword = '';
 
-        if (includeLowercase) {
-            charSet += 'abcdefghijklmnopqrstuvwxyz';
-            password.push('abcdefghijklmnopqrstuvwxyz'[Math.floor(Math.random() * 26)]);
-        }
-        if (includeUppercase) {
-            charSet += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-            password.push('ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random() * 26)]);
-        }
-        if (includeNumbers) {
-            charSet += '0123456789';
-            password.push('0123456789'[Math.floor(Math.random() * 10)]);
-        }
-        if (includeSymbols) {
-            const symbols = "!@#$%^&*()_+-=[]{}|;:'\",.<>?";
-            charSet += symbols;
-            password.push(symbols[Math.floor(Math.random() * symbols.length)]);
-        }
-
-        if (charSet === '') {
-            this.showAlert('Please select at least one character type.', 'error');
-            return '';
-        }
-
-        for (let i = password.length; i < length; i++) {
-            password.push(charSet[Math.floor(Math.random() * charSet.length)]);
+        if (customWords.trim()) {
+            const words = customWords.split(',').map(w => w.trim()).filter(w => w);
+            basePassword = words[Math.floor(Math.random() * words.length)];
+        } else {
+            // Enhanced mood and theme system with fallback word banks
+            try {
+                const { adjectives, nouns } = await this.getThemedWords(theme, mood);
+                
+                if (adjectives.length > 0 && nouns.length > 0) {
+                    const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+                    const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
+                    basePassword = this.capitalizeFirst(randomAdjective) + this.capitalizeFirst(randomNoun);
+                } else {
+                    // Fallback to local word banks
+                    const localWords = this.getLocalMoodWords(mood, theme);
+                    basePassword = localWords.adjective + localWords.noun;
+                }
+            } catch (error) {
+                console.error('Error fetching words:', error);
+                const localWords = this.getLocalMoodWords(mood, theme);
+                basePassword = localWords.adjective + localWords.noun;
+            }
         }
 
-        // Shuffle the password array to ensure randomness
-        for (let i = password.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [password[i], password[j]] = [password[j], password[i]];
-        }
-
-        return password.join('');
+        // Apply character type settings
+        basePassword = this.applyCharacterTypes(basePassword, settings);
+        
+        // Adjust to desired length
+        return this.adjustPasswordLength(basePassword, length);
     }
 
     async getThemedWords(theme, mood) {
@@ -404,6 +393,22 @@ class SecurePassApp {
                 adjectives: ['natural', 'organic', 'wild', 'fresh', 'green', 'earthy', 'pure', 'living'],
                 nouns: ['forest', 'mountain', 'river', 'tree', 'leaf', 'stone', 'earth', 'wind']
             },
+            gaming: {
+                adjectives: ['epic', 'legendary', 'virtual', 'digital', 'online', 'multiplayer', 'competitive', 'pro'],
+                nouns: ['quest', 'level', 'boss', 'raid', 'loot', 'guild', 'avatar', 'console']
+            },
+            work: {
+                adjectives: ['official', 'meeting', 'deadline', 'project', 'report', 'presentation', 'corporate', 'team'],
+                nouns: ['task', 'goal', 'objective', 'milestone', 'document', 'spreadsheet', 'email', 'calendar']
+            },
+            banking: {
+                adjectives: ['secure', 'financial', 'investment', 'savings', 'account', 'loan', 'credit', 'debit'],
+                nouns: ['balance', 'transaction', 'deposit', 'withdrawal', 'interest', 'mortgage', 'statement', 'card']
+            },
+            social: {
+                adjectives: ['friend', 'follower', 'like', 'share', 'comment', 'post', 'story', 'profile'],
+                nouns: ['network', 'media', 'group', 'event', 'message', 'notification', 'feed', 'hashtag']
+            },
             default: {
                 adjectives: ['random', 'mixed', 'varied', 'diverse', 'general', 'standard', 'common', 'basic'],
                 nouns: ['element', 'component', 'factor', 'aspect', 'feature', 'item', 'piece', 'part']
@@ -457,7 +462,11 @@ class SecurePassApp {
             fantasy: type === 'adjective' ? '&topics=fantasy+magic+mythology' : '&topics=fantasy+mythology+magic',
             'sci-fi': type === 'adjective' ? '&topics=science+technology+space' : '&topics=technology+science+space',
             professional: type === 'adjective' ? '&topics=business+corporate+professional' : '&topics=business+work+corporate',
-            nature: type === 'adjective' ? '&topics=nature+environment+natural' : '&topics=nature+animals+plants'
+            nature: type === 'adjective' ? '&topics=nature+environment+natural' : '&topics=nature+animals+plants',
+            gaming: type === 'adjective' ? '&topics=video+games,gaming' : '&topics=video+games,gaming',
+            work: type === 'adjective' ? '&topics=work,business' : '&topics=work,business',
+            banking: type === 'adjective' ? '&topics=finance,banking' : '&topics=finance,banking',
+            social: type === 'adjective' ? '&topics=social+media,communication' : '&topics=social+media,communication'
         };
 
         // Apply mood-specific query
@@ -550,14 +559,14 @@ class SecurePassApp {
 
     adjustPasswordLength(password, length) {
         if (password.length > length) {
-            return password.slice(0, length);
+            return password.substring(0, length);
         }
-        let result = password;
-        while (result.length < length) {
-            const charSet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:\'",.<>?';
-            result += charSet[Math.floor(Math.random() * charSet.length)];
+        
+        while (password.length < length) {
+            password += password.charAt(Math.floor(Math.random() * password.length));
         }
-        return result;
+        
+        return password;
     }
 
     updateLengthDisplay(value) {
